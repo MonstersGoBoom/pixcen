@@ -8,6 +8,8 @@ To build Pixcen I recommend Visual Studio 2015 Community Edition that can be dow
 
 
 * changes
-saving bmp,gif,png is now indexed images 
-import will not force 160x200 image alignment, it's 4x8 for mc mode 
+
+saving bmp,gif,png is now indexed images. 
+
+import will not force 160x200 image alignment, it's 4x8 for mc mode .
 
