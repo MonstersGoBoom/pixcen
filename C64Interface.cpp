@@ -481,7 +481,7 @@ void C64Interface::Save(LPCTSTR pszFileName, LPCTSTR type)
 	if(lstrcmpi(_T("bmp"),type)==0 || lstrcmpi(_T("png"),type)==0 || lstrcmpi(_T("jpg"),type)==0 || lstrcmpi(_T("gif"),type)==0)
 	{
 		CImage img;
-		RenderImage(img);
+		RenderImage4bpp(img);
 		if(img.Save(pszFileName) != 0)
 			throw _T("Error saving file");
 
@@ -581,6 +581,56 @@ void C64Interface::RenderImage(CImage &inimg, int startx, int starty, int width,
 		}
 	});
 }
+
+
+void C64Interface::RenderImage4bpp(CImage& inimg, int startx, int starty, int width, int height)
+{
+	int pw = GetPixelWidth();
+	int xmax = GetSizeX(), ymax = GetSizeY();
+
+	if (width != -1)
+		xmax = xmax < startx + width ? xmax : startx + width;
+
+	if (height != -1)
+		ymax = ymax < starty + height ? ymax : starty + height;
+
+	inimg.Create((xmax - startx) * pw, ymax - starty, 8);
+
+	CImageFast& img = static_cast<CImageFast&>(inimg);
+	RGBQUAD Palette[16];
+
+	for (int c = 0; c < 16; c++)
+	{
+		COLORREF p = g_Vic2[c];
+					 
+		Palette[c].rgbRed = REF2R(p);
+		Palette[c].rgbGreen = REF2G(p);
+		Palette[c].rgbBlue = REF2B(p);
+	}
+
+	img.SetColorTable(0, 16, &Palette[0]);
+	paralell_for(ymax - starty, [starty, startx, xmax, &img, pw, this](int py)
+	{
+		int y = py + starty;
+		int px, x;
+		for (px = 0, x = startx; x < xmax; x++, px++)
+		{
+			BYTE c = GetPixel(x, y);
+			if (pw != 2)
+			{
+				BYTE* p = (unsigned char*)img.GetPixelAddress(px, py);
+				p[0] = c;
+			}
+			else
+			{
+				BYTE* p = (unsigned char*)img.GetPixelAddress(px*2, py);
+				p[0] = c;
+				p[1] = c;
+			}
+		}
+	});
+}
+
 
 void C64Interface::RenderColourUsageImage(CImage &inimg, int startx, int starty, int width, int height)
 {
@@ -1618,7 +1668,7 @@ C64Interface *C64Interface::CreateFromImage(CImage *img, int count, tmode type)
 			i = new Bitmap( ((img->GetWidth()+319)/320) * 320,  ((img->GetHeight()+199)/200) * 200, count );
 			break;
 		case MC_BITMAP:
-			i = new MCBitmap( ((img->GetWidth()+319)/320) * 160,  ((img->GetHeight()+199)/200) * 200, count );
+			i = new MCBitmap( ((img->GetWidth()+7)/8) * 4,  ((img->GetHeight()+7)/8) * 8, count );
 			break;
 		case CHAR:
 			i = new SFont( ((img->GetWidth()+7)/8) * 8,  ((img->GetHeight()+7)/8) * 8, count );

@@ -216,6 +216,7 @@ public:
 	tmode GetMode(void){return mode;}
 
 	void RenderImage(CImage &img, int startx=0, int starty=0, int width=-1, int height=-1);
+	void RenderImage4bpp(CImage& img, int startx = 0, int starty = 0, int width = -1, int height = -1);
 	void RenderColourUsageImage(CImage & inimg, int startx=0, int starty=0, int width=-1, int height=-1);
 
 	void SetBackBuffer(int n);
